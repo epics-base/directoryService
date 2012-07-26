@@ -19,7 +19,7 @@
 -->
 
 <database>
-	<record recordName = "cfService" extends = "org.epics.pvService.service">
+	<record recordName = "cfService" extends = "org.epics.pvservice.service">
     	<scalar name = "factoryRPC">cfService.CfServiceFactory</scalar>
     	<structure name = "arguments">  
         	<scalar name = "query" scalarType = "string" />

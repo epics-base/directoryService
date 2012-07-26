@@ -15,14 +15,32 @@ import gov.bnl.channelfinder.api.Channel;
 import gov.bnl.channelfinder.api.Property;
 import gov.bnl.channelfinder.api.Tag;
 import java.util.*;
-import org.epics.ca.client.ChannelRPCRequester;
-import org.epics.ioc.database.PVRecord;
-import org.epics.ioc.pvAccess.RPCServer;
-import org.epics.pvData.factory.FieldFactory;
-import org.epics.pvData.factory.PVDataFactory;
-import org.epics.pvData.factory.StatusFactory;
-import org.epics.pvData.pv.Status.StatusType;
-import org.epics.pvData.pv.*;
+import org.epics.pvaccess.client.ChannelRPCRequester;
+import org.epics.pvioc.database.PVRecord;
+import org.epics.pvioc.pvAccess.RPCServer;
+import org.epics.pvdata.factory.FieldFactory;
+import org.epics.pvdata.factory.PVDataFactory;
+import org.epics.pvdata.factory.StatusFactory;
+import org.epics.pvdata.pv.Status.StatusType;
+import org.epics.pvdata.pv.*;
+import org.epics.pvdata.factory.FieldFactory;
+import org.epics.pvdata.factory.PVDataFactory;
+import org.epics.pvdata.factory.StatusFactory;
+import org.epics.pvdata.pv.Field;
+import org.epics.pvdata.pv.FieldCreate;
+import org.epics.pvdata.pv.PVBooleanArray;
+import org.epics.pvdata.pv.PVDataCreate;
+import org.epics.pvdata.pv.PVField;
+import org.epics.pvdata.pv.PVString;
+import org.epics.pvdata.pv.PVStringArray;
+import org.epics.pvdata.pv.PVStructure;
+import org.epics.pvdata.pv.ScalarArray;
+import org.epics.pvdata.pv.ScalarType;
+import org.epics.pvdata.pv.Status;
+import org.epics.pvdata.pv.Status.StatusType;
+import org.epics.pvdata.pv.StatusCreate;
+import org.epics.pvioc.database.PVRecord;
+import org.epics.pvioc.pvAccess.RPCServer;
 
 /**
  * CfServiceFactory implements an EPICS v4 service for retrieving data from the
@@ -178,7 +196,7 @@ public class CfServiceFactory {
          * between client and server.
          */
         @Override
-        public Status initialize(org.epics.ca.client.Channel channel, PVRecord pvRecord,
+        public Status initialize(org.epics.pvaccess.client.Channel channel, PVRecord pvRecord,
                 ChannelRPCRequester channelRPCRequester, PVStructure pvRequest) {
             if (DEBUG) {
                 msg("intialize() entered.");
@@ -225,12 +243,14 @@ public class CfServiceFactory {
             // to be normative type NTTable in their first element. The data payload
             // follows the declaration, in another PVStructure called Result.
             //
-            Field normativeType = fieldCreate.createScalar("normativeType", ScalarType.pvString);
+            Field normativeType = fieldCreate.createScalar(ScalarType.pvString);
             PVField[] t = new PVField[1];
-            t[0] = pvDataCreate.createPVField(null, normativeType);
+            t[0] = pvDataCreate.createPVField(normativeType);
             PVString x = (PVString) t[0];
             x.put("NTTable");
-            PVStructure pvTop = pvDataCreate.createPVStructure(null, "Result", t);
+            String[] l = new String[1];
+            l[0] = "NTType";
+            PVStructure pvTop = pvDataCreate.createPVStructure(l, t);
 
             // All gone well, so, pass the pvTop introspection interface and the 
             // query string to getData, which will populate the pvTop for us with
@@ -293,28 +313,25 @@ public class CfServiceFactory {
             }
 
             // Add the channel name column to top pvData structure
-            ScalarArray colField = fieldCreate.createScalarArray("channel", ScalarType.pvString);
-            PVStringArray valuesArray = (PVStringArray) pvDataCreate.createPVScalarArray(pvTop, colField);
+            ScalarArray colField = fieldCreate.createScalarArray(ScalarType.pvString);
+            PVStringArray valuesArray = (PVStringArray) pvDataCreate.createPVScalarArray(colField);
             valuesArray.put(0, i, chanColumn, 0);
-            pvTop.appendPVField(valuesArray);
-            labels.add("channel");
+            pvTop.appendPVField("channel", valuesArray);
 
             // Add the property columns to top pvData structure
             for (String prop : properties) {
-                colField = fieldCreate.createScalarArray(prop, ScalarType.pvString);
-                valuesArray = (PVStringArray) pvDataCreate.createPVScalarArray(pvTop, colField);
+                colField = fieldCreate.createScalarArray(ScalarType.pvString);
+                valuesArray = (PVStringArray) pvDataCreate.createPVScalarArray(colField);
                 valuesArray.put(0, i, propColumns.get(prop), 0);
-                pvTop.appendPVField(valuesArray);
-                labels.add(prop);
+                pvTop.appendPVField(prop, valuesArray);
             }
 
             // Add the tag columns to top pvData structure
             for (String tag : tags) {
-                colField = fieldCreate.createScalarArray(tag, ScalarType.pvBoolean);
-                PVBooleanArray tagsArray = (PVBooleanArray) pvDataCreate.createPVScalarArray(pvTop, colField);
+                colField = fieldCreate.createScalarArray(ScalarType.pvBoolean);
+                PVBooleanArray tagsArray = (PVBooleanArray) pvDataCreate.createPVScalarArray(colField);
                 tagsArray.put(0, i, tagColumns.get(tag), 0);
-                pvTop.appendPVField(tagsArray);
-                labels.add(tag);
+                pvTop.appendPVField(tag, tagsArray);
             }
         }
 

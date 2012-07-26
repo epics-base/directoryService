@@ -2,7 +2,7 @@ package cfService.pvDataHelper;
 
 import java.util.Vector;
 
-import org.epics.pvData.pv.*;
+import org.epics.pvdata.pv.*;
 
 /**
  * GetHelper is a utility class with methods to help copy the contents of PVData types
@@ -66,8 +66,7 @@ public class GetHelper
 	        while(offset < len) {
 	            int num = pv.get(offset,(len-offset),data);
 	            for (int i=0; i<num; i++) {
-                        String value = data.data[offset+i];
-                        if (value == null) {
+                        if (data.data[offset+i] == null) {
                             ret.add(new String(""));
                         } else {
                             ret.add(new String(data.data[offset+i]));

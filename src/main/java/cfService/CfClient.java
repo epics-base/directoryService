@@ -4,12 +4,12 @@
  */
 package cfService;
 
-import org.epics.pvData.factory.FieldFactory;
-import org.epics.pvData.factory.PVDataFactory;
-import org.epics.pvData.pv.*;
-import org.epics.pvService.rpc.ServiceClient;
-import org.epics.pvService.rpc.ServiceClientFactory;
-import org.epics.pvService.rpc.ServiceClientRequester;
+import org.epics.pvdata.factory.FieldFactory;
+import org.epics.pvdata.factory.PVDataFactory;
+import org.epics.pvdata.pv.*;
+import org.epics.pvservice.rpc.ServiceClient;
+import org.epics.pvservice.rpc.ServiceClientFactory;
+import org.epics.pvservice.rpc.ServiceClientRequester;
 import cfService.namedValues.NamedValues;
 import cfService.namedValues.NamedValuesFormatter;
 import cfService.pvDataHelper.GetHelper;
@@ -40,7 +40,7 @@ public class CfClient {
     // cfClient expects to get returned a PVStructure which conforms to the 
     // definition of an NTTable. As such, the PVStructure's first field should 
     // be called "normativeType" and have value "NTTable".
-    private static String TYPE_FIELD_NAME = "normativeType";
+    private static String TYPE_FIELD_NAME = "NTType";
     private static String NTTABLE_TYPE_NAME = "NTTable";
     // Error exit codes
     private static final int NOTNORMATIVETYPE = 1;
@@ -68,15 +68,18 @@ public class CfClient {
         parseArguments(args);
 
         // Start PVAccess. Instantiate private class that handles callbacks and look for arguments
-        org.epics.ca.ClientFactory.start();
+        org.epics.pvaccess.ClientFactory.start();
         Client client = new Client();
 
         PVDataCreate pvDataCreate = PVDataFactory.getPVDataCreate();
         FieldCreate fieldCreate = FieldFactory.getFieldCreate();
-        Field[] fields = new Field[2];
-        fields[0] = fieldCreate.createScalar(ENTITY_ARGNAME, ScalarType.pvString);
-        fields[1] = fieldCreate.createScalar(PARAMS_ARGNAME, ScalarType.pvString);
-        PVStructure pvArguments = pvDataCreate.createPVStructure(null, SERVICE_ARGUMENTS_FIELDNAME, fields);
+        PVField[] fields = new PVField[2];
+        fields[0] = pvDataCreate.createPVField(fieldCreate.createScalar(ScalarType.pvString));
+        fields[1] = pvDataCreate.createPVField(fieldCreate.createScalar(ScalarType.pvString));
+        String[] l = new String[2];
+        l[0] = ENTITY_ARGNAME;
+        l[1] = PARAMS_ARGNAME;
+        PVStructure pvArguments = pvDataCreate.createPVStructure(l, fields);
 
         // Make connection to service
 
@@ -126,8 +129,8 @@ public class CfClient {
 
             if (normativetypeField == null) {
                 System.err.println("Unable to get data: unexpected data structure returned from "
-                        + OBJECTIVE_SERVICE_NAME + ". Expected normativetype member, "
-                        + "but normativetype not found in returned datum.");
+                        + OBJECTIVE_SERVICE_NAME + ". Expected normative type member, "
+                        + "but normative type not found in returned datum.");
                 System.err.println(pvResult);
                 System.exit(NOTNORMATIVETYPE);
             }
@@ -175,7 +178,7 @@ public class CfClient {
             for (PVField pvFielde : pvFields) {
                 // Get the label attached to the field. This will be the column name from the ResultSet
                 // of the SQL SELECT query.
-                String fieldName = pvFielde.getField().getFieldName();
+                String fieldName = pvFielde.getFieldName();
 
                 // Skip past the meta-data field named "normativeType"
                 if (fieldName.compareTo(TYPE_FIELD_NAME) == 0) {
@@ -226,7 +229,7 @@ public class CfClient {
 
         // Clean up
         client.destroy();
-        org.epics.ca.ClientFactory.stop();
+        org.epics.pvaccess.ClientFactory.stop();
 
         _dbg("DEBUG: main(): Completed Successfully");
         System.exit(0);

@@ -132,11 +132,11 @@
                                     <fileset dir="../pvIOCJava/xml"/>
                                 </copy>
                                 <copy todir="target/config/pvIOCJava/xml/structure/portDriver">
-                                    <fileset dir="../pvIOCJava/src/org/epics/ioc/pdrv/serial">
+                                    <fileset dir="../pvIOCJava/src/org/epics/pvioc/pdrv/serial">
                                     </fileset>
-                                    <fileset dir="../pvIOCJava/src/org/epics/ioc/pdrv/testDriver">
+                                    <fileset dir="../pvIOCJava/src/org/epics/pvioc/pdrv/testDriver">
                                     </fileset>
-                                    <fileset dir="../pvIOCJava/src/org/epics/ioc/pdrv/vxi11">
+                                    <fileset dir="../pvIOCJava/src/org/epics/pvioc/pdrv/vxi11">
                                     </fileset>
                                 </copy>
                                 <copy todir="target/config/pvServiceJava/xml">
