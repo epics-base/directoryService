@@ -17,8 +17,6 @@
       <outputDirectory>/</outputDirectory>
       <includes>
         <include>*.jar</include>
-        <include>config/pvIOCJava/**</include>
-        <include>config/pvServiceJava/**</include>
       </includes>
     </fileSet>
     <fileSet>
@@ -28,13 +26,6 @@
       </includes>
       <outputDirectory>/bin</outputDirectory>
       <fileMode>0755</fileMode>
-    </fileSet>
-    <fileSet>
-      <directory>src/main/xml</directory>
-      <includes>
-        <include>*.xml</include>
-      </includes>
-      <outputDirectory>/xml</outputDirectory>
     </fileSet>
   </fileSets>    
 </assembly>

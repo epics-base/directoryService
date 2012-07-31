@@ -6,23 +6,20 @@
  * cfService defines classes for the server side of an EPICS V4 service for
  * accessing the ChannelFinder web service.
  */
-package cfService;
+package org.epics.directory.service;
 
+import gov.bnl.channelfinder.api.Channel;
 import gov.bnl.channelfinder.api.ChannelFinder;
 import gov.bnl.channelfinder.api.ChannelFinderClient;
 import gov.bnl.channelfinder.api.ChannelUtil;
-import gov.bnl.channelfinder.api.Channel;
 import gov.bnl.channelfinder.api.Property;
 import gov.bnl.channelfinder.api.Tag;
 import java.util.*;
+import org.epics.pvaccess.CAException;
 import org.epics.pvaccess.client.ChannelRPCRequester;
-import org.epics.pvioc.database.PVRecord;
-import org.epics.pvioc.pvAccess.RPCServer;
-import org.epics.pvdata.factory.FieldFactory;
-import org.epics.pvdata.factory.PVDataFactory;
-import org.epics.pvdata.factory.StatusFactory;
-import org.epics.pvdata.pv.Status.StatusType;
-import org.epics.pvdata.pv.*;
+import org.epics.pvaccess.server.rpc.RPCRequestException;
+import org.epics.pvaccess.server.rpc.RPCServer;
+import org.epics.pvaccess.server.rpc.RPCService;
 import org.epics.pvdata.factory.FieldFactory;
 import org.epics.pvdata.factory.PVDataFactory;
 import org.epics.pvdata.factory.StatusFactory;
@@ -39,15 +36,13 @@ import org.epics.pvdata.pv.ScalarType;
 import org.epics.pvdata.pv.Status;
 import org.epics.pvdata.pv.Status.StatusType;
 import org.epics.pvdata.pv.StatusCreate;
-import org.epics.pvioc.database.PVRecord;
-import org.epics.pvioc.pvAccess.RPCServer;
 
 /**
- * CfServiceFactory implements an EPICS v4 service for retrieving data from the
+ * CfService implements an EPICS v4 service for retrieving data from the
  * ChannelFinder web service.
  *
  * In the EPICS v4 services framework, each service is implemented by creating a
- * class with the signature defined by [TODO: where in fact?]. CfServiceFactory
+ * class with the signature defined by [TODO: where in fact?]. CfService
  * is the required factory Class for the ChannelFinder service.
  *
  * As written, CfService expects arguments of the following form:
@@ -77,24 +72,22 @@ import org.epics.pvioc.pvAccess.RPCServer;
  * @author Ralph Lange <Ralph.Lange@gmx.de>
  *
  */
-public class CfServiceFactory {
+public class CfService {
 
-    // Define factory to create an instance of this service
-    public static RPCServer create() {
-        return new RPCServerImpl();
-    }
     // Create Status codes used by this service
     //
-    private static final boolean DEBUG = true; // Whether to print debugging
+    private static final boolean DEBUG = false; // Whether to print debugging
     // info.
     private static final StatusCreate statusCreate = StatusFactory.getStatusCreate();
     private static final Status okStatus = statusCreate.getStatusOK();
     private static final Status missingRequiredArgumentStatus = statusCreate.createStatus(StatusType.ERROR,
             "Missing required argument", null);
+    
     private static final FieldCreate fieldCreate = FieldFactory.getFieldCreate();
     private static final PVDataCreate pvDataCreate = PVDataFactory.getPVDataCreate();
+    private static final String SERVICE_NAME = "cfService";
 
-    private static class RPCServerImpl implements RPCServer {
+    private static class CfServiceImpl implements RPCService {
 
         private ChannelRPCRequester channelRPCRequester;
         private String query; // String in pvEntity.
@@ -112,7 +105,6 @@ public class CfServiceFactory {
         private PVString m_pvQuery;          // The name of the SQL query to run against Oracle
         // TODO: Externalize and protect access username/passwords and strings
         // TODO: Convert connection string to java Property.
-        private static final String SERVICE_NAME = "cfService";
         //
         private static ChannelFinderClient m_CfClient = null; // ChannelFinder client
 
@@ -136,16 +128,16 @@ public class CfServiceFactory {
         }
 
         /**
-         * Initialize for an acquisition.
+         * Initialize.
          *
-         * RPCServerImpl is called by the pvIOC framework at server start and on
+         * CfServiceImpl is called by the pvIOC framework at server start and on
          * each service request, so if you want to execute initializations only
          * once, you have to check if it's already done. Note, in this service
          * example, we use a pattern where the initialization is done on server
          * startup, and the important part (getConnection) can be redone at any
          * time if the connection to the backend rdb goes bad.
          */
-        RPCServerImpl() {
+        CfServiceImpl() {
             msg("Entering Impl");
             if (m_CfClient == null) {
                 init();
@@ -166,57 +158,11 @@ public class CfServiceFactory {
             msg("After init");
         }
 
-        /*
-         * We have to override destroy. (non-Javadoc)
-         *
-         * @see org.epics.ioc.pvAccess.RPCServer#destroy()
-         */
-        @Override
-        public void destroy() {
-        }
-
-        /**
-         *
-         *
-         * @see
-         * org.epics.ioc.pvAccess.RPCServer#initialize(org.epics.ca.client.Channel
-         * , org.epics.ioc.database.PVRecord,
-         * org.epics.ca.client.ChannelRPCRequester,
-         * org.epics.pvData.pv.PVStructure, org.epics.pvData.misc.BitSet,
-         * org.epics.pvData.pv.PVStructure)
-         *
-         * @param channel The channel that is requesting the service.
-         * @param pvRecord The record that is being serviced.
-         * @param channelRPCRequester The client that is requesting the service.
-         * @param pvArgument The structure for the argument data that will be
-         * passed from the client
-         * @param bitSet The bitSet that shows which fields in pvArgument have
-         * changed value
-         * @param pvRequest The client's request structure - the agreement
-         * between client and server.
-         */
-        @Override
-        public Status initialize(org.epics.pvaccess.client.Channel channel, PVRecord pvRecord,
-                ChannelRPCRequester channelRPCRequester, PVStructure pvRequest) {
-            if (DEBUG) {
-                msg("intialize() entered.");
-            }
-
-            Status status = okStatus;
-            this.channelRPCRequester = channelRPCRequester;
-            m_pvRequest = pvRequest;
-
-            if (DEBUG) {
-                msg("intialize() leaving: status=" + status.toString());
-            }
-            return status;
-        }
-
         /**
          * Construct and return the requested archive data.
          */
         @Override
-        public void request(PVStructure pvArguments) {
+        public PVStructure request(PVStructure args) throws RPCRequestException {
             // Retrieve the arguments (query and parameters). Only the "query"
             // argument is required for cfService at this time. That's the
             // ChannelFinder query string, as defined in the ChannelFinder docs.
@@ -225,14 +171,14 @@ public class CfServiceFactory {
             // a this early stage in EPICS v4 it looks like a good idea to make all
             // services xml look identical, so all server code can be cloned.
             //
-            m_pvQuery = pvArguments.getStringField("query");
+            m_pvQuery = args.getStringField("query");
             if (m_pvQuery == null) {
                 channelRPCRequester.requestDone(missingRequiredArgumentStatus, null);
             }
             query = m_pvQuery.get();
 
             // m_pvParameters is not used, so we don't check it.
-            m_pvParameters = pvArguments.getStringField("parameters");
+            m_pvParameters = args.getStringField("parameters");
 
             // Construct the return data structure "pvTop."
             // The data structure we return here is a pre-release example
@@ -260,7 +206,7 @@ public class CfServiceFactory {
 
             // Return the data from ChannelFinder, in the pvTop, to the client.
             _dbg("pvTop = " + pvTop);
-            channelRPCRequester.requestDone(okStatus, pvTop);
+            return pvTop;
         }
 
         private void getData(String query, PVStructure pvTop) {
@@ -335,7 +281,6 @@ public class CfServiceFactory {
             }
         }
 
-        @SuppressWarnings("unused")
         private Status parseParameters() {
             // There are no parameters recognized by the cfService, so
             // always return okStatus.
@@ -349,4 +294,15 @@ public class CfServiceFactory {
             }
         }
     }
+    
+    public static void main(String[] args) throws CAException {
+
+        RPCServer server = new RPCServer();
+
+        server.registerService("cf", new CfServiceImpl());
+
+        server.printInfo();
+        server.run(0);
+    }
+
 }

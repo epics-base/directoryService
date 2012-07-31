@@ -2,20 +2,20 @@
  * -*-java-*- CfClient is a simple client of the cfService (an EPICS V4
  * service).
  */
-package cfService;
+package org.epics.directory.client;
 
 import org.epics.pvdata.factory.FieldFactory;
 import org.epics.pvdata.factory.PVDataFactory;
 import org.epics.pvdata.pv.*;
+import org.epics.pvdata.util.namedValues.NamedValues;
+import org.epics.pvdata.util.namedValues.NamedValuesFormatter;
+import org.epics.pvdata.util.pvDataHelper.GetHelper;
 import org.epics.pvservice.rpc.ServiceClient;
 import org.epics.pvservice.rpc.ServiceClientFactory;
 import org.epics.pvservice.rpc.ServiceClientRequester;
-import cfService.namedValues.NamedValues;
-import cfService.namedValues.NamedValuesFormatter;
-import cfService.pvDataHelper.GetHelper;
 
 /**
- * CfClient is a simple client of the cfService; the cfService is intended to
+ * CfClient is a simple command line client of the CfService; CfService is intended to
  * get data out of the ChannelFinder directory service, via EPICS V4.
  *
  * @author Ralph Lange <Ralph.Lange@gmx.de>
@@ -30,7 +30,7 @@ public class CfClient {
     private static final String CLIENT_NAME = "ChannelFinder client";
     // These literals must agree with the XML Database of the service in question. In this
     // case perfTestService. See perfTestService.xml.
-    private static final String OBJECTIVE_SERVICE_NAME = "cfService";  // Name of service to contact.
+    private static final String OBJECTIVE_SERVICE_NAME = "cf";  // Name of service to contact.
     private static final String SERVICE_ARGUMENTS_FIELDNAME = "arguments";
     // Name of field holding
     // arguments in the service's interface xml db.
@@ -85,19 +85,18 @@ public class CfClient {
 
         client.connect(OBJECTIVE_SERVICE_NAME);
 
-        _dbg("DEBUG: main(): following client connect, pvarguments = "
+        _dbg("main(): following client connect, pvarguments = "
                 + pvArguments.toString());
 
         // Retrieve interface (i.e., an API for setting the arguments of the service)
         //
         PVString pvQuery = pvArguments.getStringField(ENTITY_ARGNAME);
-        @SuppressWarnings("unused") // The parameters field of the input is not yet used by rdbService.
         PVString pvParams = pvArguments.getStringField(PARAMS_ARGNAME);
 
         // Update arguments to the service with what we got at the command line, like "swissfel:allmagnetnames"
         //
         if (args.length <= 0) {
-            System.err.println("No name of a db query was given; exiting.");
+            System.err.println("No query specified; exiting.");
             System.exit(NOARGS);
         }
         pvQuery.put(args[0]);
@@ -320,8 +319,8 @@ public class CfClient {
          * but client side of pvData calls it, you don't call it directly.
          *
          * @see
-         * org.epics.pvService.client.ServiceClientRequester#connectResult(org.epics.pvData.pv.Status,
-         * org.epics.pvData.pv.PVStructure, org.epics.pvData.misc.BitSet)
+         * org.epics.pvservice.client.ServiceClientRequester#connectResult(org.epics.pvdata.pv.Status,
+         * org.epics.pvdata.pv.PVStructure, org.epics.pvdata.misc.BitSet)
          */
         @Override
         public void connectResult(Status status) {
@@ -400,12 +399,7 @@ public class CfClient {
      * @param args the command line arguments
      */
     private static void parseArguments(String[] args) {
-        // Create a formatter for the namedValues system constructed above. This 
-        // will be used to print the system as a familiar looking table, unless the style arg says 
-        // print it as rows, in which case you'll get a list of row data. Column style
-        // is better for >1 value per name. Row style is good for 1 value per name.
-        //
-        if (args[_OWNERS_ARGN] != null) {
+        if (args.length > _OWNERS_ARGN && args[_OWNERS_ARGN] != null) {
             if (_OWNERS_WANTED.equals(args[_OWNERS_ARGN])) {
                 _owners = OWNERS_WANTED;
             } else if (_OWNERS_NOTWANTED.equals(args[_OWNERS_ARGN])) {

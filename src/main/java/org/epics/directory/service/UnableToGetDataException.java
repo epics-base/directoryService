@@ -1,4 +1,4 @@
-package cfService;
+package org.epics.directory.service;
 
 @SuppressWarnings("serial")
 public class UnableToGetDataException extends Exception 
