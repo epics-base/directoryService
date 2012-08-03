@@ -1,13 +1,19 @@
-/*
- * Copyright (c) 2012 Helmholtz-Zentrum Berlin für Materialien und Energie GmbH
- * All rights reserved. Use is subject to license terms and conditions.
- */
-
 /**
  * CFConnector accesses the ChannelFinder web service,
  * taking arguments and returning results as pvData.
  */
 package org.epics.directory;
+
+/*
+ * #%L
+ * directoryService - Java
+ * %%
+ * Copyright (C) 2012 EPICS
+ * %%
+ * Copyright (C) 2012 Helmholtz-Zentrum Berlin für Materialien und Energie GmbH
+ * All rights reserved. Use is subject to license terms.
+ * #L%
+ */
 
 import gov.bnl.channelfinder.api.Channel;
 import gov.bnl.channelfinder.api.ChannelFinder;

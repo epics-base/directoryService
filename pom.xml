@@ -7,9 +7,13 @@
     <version>0.1.1-SNAPSHOT</version>
     <artifactId>directoryService</artifactId>
     <packaging>jar</packaging>
+    <organization>
+        <name>EPICS</name>
+    </organization>
 
     <name>directoryService - Java</name>
     <url>http://epics-pvdata.sourceforge.net/directoryService</url>
+    <inceptionYear>2012</inceptionYear>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -64,8 +68,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.3.2</version>
                 <configuration>
-                    <source>1.5</source>
-                    <target>1.5</target>
+                    <source>1.6</source>
+                    <target>1.6</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -99,16 +103,38 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>2.3</version>
                 <configuration>
-                <descriptors>
-                    <descriptor>src/main/assembly/distribution.xml</descriptor>
-                </descriptors>
+                    <descriptors>
+                        <descriptor>src/main/assembly/distribution.xml</descriptor>
+                    </descriptors>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                          <goal>single</goal>
+                        </goals>
+                    </execution>
+              </executions>
             </plugin>
             <plugin>
-                <!-- HACK: Copy over files needed from pvService and pvIOC -->
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.7</version>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>1.2</version>
+                <configuration>
+                    <licenseName>epics_license</licenseName>
+                    <licenseResolver>file://${basedir}/src/license</licenseResolver>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>first</id>
+                        <goals>
+                            <goal>update-file-header</goal>
+                            <goal>update-project-license</goal>
+                        </goals>
+                        <phase>process-sources</phase>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

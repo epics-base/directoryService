@@ -1,12 +1,20 @@
-/*
- * Copyright (c) 2012 Helmholtz-Zentrum Berlin für Materialien und Energie GmbH
- * All rights reserved. Use is subject to license terms and conditions.
- */
 /**
  * cfService defines classes for the server side of an EPICS V4 service for
  * accessing the ChannelFinder web service.
  */
+
 package org.epics.directory;
+
+/*
+ * #%L
+ * directoryService - Java
+ * %%
+ * Copyright (C) 2012 EPICS
+ * %%
+ * Copyright (C) 2012 Helmholtz-Zentrum Berlin für Materialien und Energie GmbH
+ * All rights reserved. Use is subject to license terms.
+ * #L%
+ */
 
 import org.epics.pvaccess.CAException;
 import org.epics.pvaccess.client.ChannelRPCRequester;

@@ -4,6 +4,17 @@
 
 package org.epics.directory;
 
+/*
+ * #%L
+ * directoryService - Java
+ * %%
+ * Copyright (C) 2012 EPICS
+ * %%
+ * Copyright (C) 2012 Helmholtz-Zentrum Berlin für Materialien und Energie GmbH
+ * All rights reserved. Use is subject to license terms.
+ * #L%
+ */
+
 import org.epics.pvaccess.ClientFactory;
 import org.epics.pvdata.factory.FieldFactory;
 import org.epics.pvdata.factory.PVDataFactory;
