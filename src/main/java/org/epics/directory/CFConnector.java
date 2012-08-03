@@ -62,6 +62,12 @@ public class CFConnector {
         }
     }
 
+    /**
+     * getData performs a query on the ChannelFinder directory service.
+     * 
+     * @param args pvData structure holding the arguments
+     * @return NTTable structure with the results
+     */
     public PVStructure getData(PVStructure args) {
         if (cfClient == null) {
             connect();

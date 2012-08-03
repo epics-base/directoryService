@@ -58,7 +58,12 @@ public class DSService {
         }
     }
     
-    public static void main(String[] args) throws CAException {
+    /**
+     * main runs the DSService.
+     * 
+     * @throws CAException pvAccess exception
+     */
+    public static void main() throws CAException {
 
         RPCServer server = new RPCServer();
 
