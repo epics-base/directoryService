@@ -1,0 +1,40 @@
+#!/bin/sh
+#!-*- sh -*-
+#
+# Abs: dsServiceRunner executes DSService as an EPICS V4 service,
+# setting the classpath to find the dependent libraries in the right location.
+#
+# Usage: Execute dsServiceRunner prior to executing dsClientRunner.   
+# 
+#         > ./dsServiceRunner    
+# 
+# Ref: 
+# ----------------------------------------------------------------------------
+# Auth: Ralph Lange <Ralph.Lange@gmx.de>
+# Mod:  
+# ============================================================================
+
+# Find out where we are being run from
+
+PRG=$0
+
+while [ -h "$PRG" ]; do
+    ls=`ls -ld "$PRG"`
+    link=`expr "$ls" : '^.*-> \(.*\)$' 2>/dev/null`
+    if expr "$link" : '^/' 2> /dev/null >/dev/null; then
+        PRG="$link"
+    else
+        PRG="`dirname "$PRG"`/$link"
+    fi
+done
+
+progdir=`dirname "$PRG"`
+progdir=`cd $progdir; pwd`
+
+# Start the service.
+
+java -server \
+     -cp "$progdir/../lib/*:$progdir/../*" \
+     -Xdebug -Xrunjdwp:transport=dt_socket,server=y,address=8888,suspend=n \
+     org.epics.directory.DSService
+     "$@"

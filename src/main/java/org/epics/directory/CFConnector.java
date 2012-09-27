@@ -52,6 +52,36 @@ import org.epics.pvdata.pv.Structure;
  * @author Ralph Lange <Ralph.Lange@gmx.de>
  *
  */
+
+class ChannelComparator implements Comparator<Channel> {
+
+    private static String property;
+
+    ChannelComparator(String prop) {
+        property = prop;
+    }
+
+    @Override
+    public int compare(Channel c1, Channel c2) {
+        Property p1 = c1.getProperty(property);
+        Property p2 = c2.getProperty(property);
+
+        if (p1 == null) {
+            if (p2 == null) {
+                return 0;
+            } else {
+                return -1;
+            }
+        } else {
+            if (p2 == null) {
+                return 1;
+            } else {
+                return p1.getValue().compareTo(p2.getValue());
+            }
+        }
+    }
+}
+
 public class CFConnector {
 
     private static final boolean DEBUG = false; // Print debug info
@@ -75,16 +105,45 @@ public class CFConnector {
      * @return NTTable structure with the results
      */
     public PVStructure getData(PVStructure args) {
+        PVString pvStringArg;
+        String query;
+        Set<String> show = null;
+        boolean useShowFilter = false;
+        String sort = null;
+        boolean showOwner = false;
+        
         if (cfClient == null) {
             connect();
         }
         
-        PVString pvQuery = args.getStringField("query");
-        if (pvQuery == null) {
+        // Parsing arguments
+        
+        pvStringArg = args.getStringField("query");
+        if (pvStringArg == null) {
             throw new IllegalArgumentException("No query in argument list");
         }
-        String query = pvQuery.get();
+        query = pvStringArg.get();
         _dbg("Got request, query=" + query);
+        
+        pvStringArg = args.getStringField("show");
+        if (pvStringArg != null) {
+            show = new HashSet<String>(Arrays.asList(pvStringArg.get().split(",")));
+            show.add("channel");
+            useShowFilter = true;
+            _dbg("  Arg show=" + show.toString());
+        }
+        
+        pvStringArg = args.getStringField("sort");
+        if (pvStringArg != null) {
+            sort = pvStringArg.get();
+            _dbg("  Arg sort=" + sort.toString());
+        }
+        
+        pvStringArg = args.getStringField("owner");
+        if (pvStringArg != null) {
+            showOwner = true;
+            _dbg("  Arg owner");
+        }
         
         Collection<Channel> channels;
         List<String> properties;
@@ -94,11 +153,18 @@ public class CFConnector {
         HashMap<String, String[]> propColumns = new HashMap<String, String[]>();
         HashMap<String, boolean[]> tagColumns = new HashMap<String, boolean[]>();
         String[] chanColumn;
+        String[] ownerColumn;
 
         /* Do the ChannelFinder query */
         channels = cfClient.find(query);
         
         if (channels != null) {
+            if (sort != null) {
+                ChannelComparator comp = new ChannelComparator(sort);
+                ArrayList<Channel> sortedCh = new ArrayList<Channel>(channels);
+                Collections.sort(sortedCh, comp);
+                channels = sortedCh;
+            }
             nChan = channels.size();
             properties = new ArrayList<String>(
                             ChannelUtil.getPropertyNames(channels));
@@ -112,8 +178,16 @@ public class CFConnector {
             tags = Collections.emptyList();
         }
 
+        /* Filter out no-show columns */
+        if (useShowFilter) {
+            properties.retainAll(show);
+            tags.retainAll(show);
+            _dbg("After no-show filtering remain " + properties.size() + " properties and " + tags.size() + " tags");
+        }
+        
         /* Create the empty columns data arrays */
-        chanColumn = new String[nChan];
+        chanColumn  = new String[nChan];
+        ownerColumn = new String[nChan];
         for (String prop : properties) {
             propColumns.put(prop, new String[nChan]);
         }
@@ -121,24 +195,41 @@ public class CFConnector {
             tagColumns.put(tag, new boolean[nChan]);
         }
         int noCols = 1 + properties.size() + tags.size();  // channel properties tags
+        if (showOwner) {
+            noCols++;
+        }
+        _dbg("Reply contains " + noCols + " columns");
 
         /* Create the labels */
         List<String> labels = new ArrayList<String>(noCols);
         labels.add("channel");
+        if (showOwner) {
+            labels.add("@owner");
+        }
         labels.addAll(properties);
         labels.addAll(tags);
+        _dbg("Labels: " + labels);
 
         /* Loop through the channels, setting the appropriate fields in the column data */
         int i = 0;
         for (Channel chan : channels) {
             chanColumn[i] = chan.getName();
+            if (showOwner) {
+                ownerColumn[i] = chan.getOwner();
+            }
             for (Property prop : chan.getProperties()) {
-                String[] col = propColumns.get(prop.getName());
-                col[i] = prop.getValue();
+                String s = prop.getName();
+                if (!useShowFilter || properties.contains(s)) {
+                    String[] col = propColumns.get(s);
+                    col[i] = prop.getValue();
+                }
             }
             for (Tag tag : chan.getTags()) {
-                boolean[] col = tagColumns.get(tag.getName());
-                col[i] = true;
+                String s = tag.getName();
+                if (!useShowFilter || tags.contains(s)) {
+                    boolean[] col = tagColumns.get(s);
+                    col[i] = true;
+                }
             }
             i++;
         }
@@ -157,10 +248,18 @@ public class CFConnector {
         
         Integer col = 0;
         
-        /* Add channel columns */
+        /* Add channel column */
         if (nChan > 0) {
             PVStringArray valuesArray = (PVStringArray) pvDataCreate.createPVScalarArray(stringColumnField);
             valuesArray.put(0, nChan, chanColumn, 0);
+            pvTop.appendPVField("c"+col.toString(), valuesArray);
+            col++;
+        }
+
+        /* Add owner column */
+        if (showOwner && nChan > 0) {
+            PVStringArray valuesArray = (PVStringArray) pvDataCreate.createPVScalarArray(stringColumnField);
+            valuesArray.put(0, nChan, ownerColumn, 0);
             pvTop.appendPVField("c"+col.toString(), valuesArray);
             col++;
         }

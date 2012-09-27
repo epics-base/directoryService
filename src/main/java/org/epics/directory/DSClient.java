@@ -15,16 +15,18 @@ package org.epics.directory;
  * #L%
  */
 
+import java.util.ArrayList;
+import java.util.List;
 import org.epics.pvaccess.ClientFactory;
+import org.epics.pvaccess.client.rpc.ServiceClient;
+import org.epics.pvaccess.client.rpc.ServiceClientFactory;
+import org.epics.pvaccess.client.rpc.ServiceClientRequester;
 import org.epics.pvdata.factory.FieldFactory;
 import org.epics.pvdata.factory.PVDataFactory;
 import org.epics.pvdata.pv.*;
 import org.epics.pvdata.util.namedValues.NamedValues;
 import org.epics.pvdata.util.namedValues.NamedValuesFormatter;
 import org.epics.pvdata.util.pvDataHelper.GetHelper;
-import org.epics.pvservice.rpc.ServiceClient;
-import org.epics.pvservice.rpc.ServiceClientFactory;
-import org.epics.pvservice.rpc.ServiceClientRequester;
 
 /**
  * DSClient is a simple command line client of the DSService.
@@ -44,6 +46,8 @@ public class DSClient {
     
     private static final FieldCreate fieldCreate = FieldFactory.getFieldCreate();
     private static final PVDataCreate pvDataCreate = PVDataFactory.getPVDataCreate();
+    
+    private static final double timeout = 5.0;
 
     /**
      * main()
@@ -52,6 +56,14 @@ public class DSClient {
      */
     public static void main(String[] args) {
         PVStructure pvResult = null;
+        List<String> arguments = new ArrayList<String>();
+        List<String> values = new ArrayList<String>();
+        boolean printLabels = true;
+
+        if (args.length <= 0) {
+            System.err.println("No query specified; exiting.");
+            System.exit(-1);
+        }
 
         /* Start PVAccess client and connect */
         ClientFactory.start();
@@ -60,24 +72,56 @@ public class DSClient {
         client.connect(SERVICE_NAME);
         _dbg("client connected");
 
-        PVField[] fields = new PVField[1];
-        fields[0] = pvDataCreate.createPVField(fieldCreate.createScalar(ScalarType.pvString));
-        String[] l = new String[1];
-        l[0] = "query";
-        PVStructure pvArguments = pvDataCreate.createPVStructure(l, fields);
-        _dbg("pvArguments = " + pvArguments);
-
-        // Retrieve interface (i.e., an API for setting the arguments of the service)
-        //
-        PVString pvQuery = pvArguments.getStringField("query");
-
-        // Update arguments to the service with what we got at the command line, like "swissfel:allmagnetnames"
-        //
-        if (args.length <= 0) {
-            System.err.println("No query specified; exiting.");
-            System.exit(-1);
+        // Parse command line
+        
+        for (int i = 0; i < args.length; i++) {
+            String s = args[i];
+                _dbg("token " + i + ": " + s);
+            if (s.equals("owner")) {
+                _dbg("-> found owner ");
+                arguments.add("owner");
+                values.add("1");
+            } else if (s.startsWith("sort=")) {
+                _dbg("-> found sort " + s.split("=", -1)[1]);
+                arguments.add("sort");
+                values.add(s.split("=", -1)[1]);
+            } else if (s.equals("nolabels")) {
+                printLabels = false;
+            } else if (s.startsWith("show=")) {
+                _dbg("-> found show " + s.split("=", -1)[1]);
+                arguments.add("show");
+                values.add(s.split("=", -1)[1]);
+            } else if (s.startsWith("query=")) {
+                _dbg("-> found qual. query " + s.split("=", -1)[1]);
+                arguments.add("query");
+                values.add(s.split("=", -1)[1]);
+            } else if (i == 0) {
+                _dbg("-> found query " + s);
+                arguments.add("query");
+                values.add(s);
+            } else {
+                System.err.println("Unrecognized argument '" + s + "'; exiting.");
+                System.exit(-1);
+            }
         }
-        pvQuery.put(args[0]);
+
+        // Set up request structure (each arg in its string field)
+        int nArgs = arguments.size();
+        // Create pvData interface
+        PVField[] fields = new PVField[nArgs];
+        for (int i = 0; i < nArgs; i++) {
+            fields[i] = pvDataCreate.createPVField(fieldCreate.createScalar(ScalarType.pvString));
+        }
+        String[] a = arguments.toArray(new String[arguments.size()]);
+        String[] v = values.toArray(new String[values.size()]);
+        _dbg("nArgs " + nArgs + " (" + a + ")");
+
+        // Create pvData instance and fill in values
+        PVStructure pvArguments = pvDataCreate.createPVStructure(a, fields);
+        for (int i = 0; i < nArgs; i++) {
+            pvArguments.getStringField(a[i]).put(v[i]);
+        }
+        _dbg("pvArguments = " + pvArguments);
 
         try {
             pvResult = client.request(pvArguments);
@@ -127,6 +171,7 @@ public class DSClient {
         /* Set up a printout formatter for our NamedValues system */
         NamedValuesFormatter formatter =
                 NamedValuesFormatter.create(NamedValuesFormatter.STYLE_COLUMNS);
+        formatter.setWhetherDisplayLabels(printLabels);
         formatter.assignNamedValues(namedValues);
         formatter.display(System.out);
 
@@ -185,7 +230,7 @@ public class DSClient {
 
             // Actually execute the request for data on the server.
             serviceClient.sendRequest(pvArguments);
-            serviceClient.waitRequest();
+            serviceClient.waitResponse(timeout);
 
             _dbg("Request exits with pvResult =\n" + pvResult.toString());
             return pvResult;
@@ -195,10 +240,10 @@ public class DSClient {
          * connectResult verifies the connection.
          *
          * @see
-         * org.epics.pvservice.client.ServiceClientRequester#connectResult(org.epics.pvdata.pv.Status)
+         * org.epics.pvaccess.client.rpc.ServiceClientRequester#connectResult(org.epics.pvdata.pv.Status)
          */
         @Override
-        public void connectResult(Status status) {
+	public void connectResult(ServiceClient client, Status status) {
             if (!status.isOK()) {
                 throw new RuntimeException("Connection error: " + status.getMessage());
             }
@@ -213,7 +258,7 @@ public class DSClient {
          * org.epics.pvdata.pv.PVStructure)
          */
         @Override
-        public void requestResult(Status status, PVStructure pvResult) {
+	public void requestResult(ServiceClient client, Status status, PVStructure pvResult) {
             if (!status.isOK()) {
                 // throw new RuntimeException("Request error: " + status.getMessage());
                 System.err.println(SERVICE_NAME + " returned status " + status.getType().toString()

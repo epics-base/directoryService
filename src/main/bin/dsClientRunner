@@ -1,0 +1,46 @@
+#!/bin/sh
+#!-*- sh -*-
+#
+# Abs: dsClientRunner executes the DSClient directory service command line client
+#      for EPIVS V4.
+#
+# Rem: DSClient is a simple EPICS V4 RPC service command line client,
+#      demonstrating how to use EPICS V4 to get directory data out of ChannelFinder.
+#
+# Args: $1 a ChannelFinderAPI query
+#
+# Usage: Execute dsClientRunner anytime while dsServiceRunner is running. It
+#        takes one required argument, being a valid ChannelFinderAPI query
+#         > ./dsClientRunner 
+#
+#         Examples: 
+#         > ./dsClientRunner SR:C01-MG:G06*
+#           ./dsClientRunner SR:C01-MG:G06*
+#                   
+# 
+# Ref: <TODO>
+# ----------------------------------------------------------------------------
+# Auth: Ralph Lange <Ralph.Lange@gmx.de>
+# Mod:  
+# ============================================================================
+
+# Find out where we are being run from
+
+PRG=$0
+
+while [ -h "$PRG" ]; do
+    ls=`ls -ld "$PRG"`
+    link=`expr "$ls" : '^.*-> \(.*\)$' 2>/dev/null`
+    if expr "$link" : '^/' 2> /dev/null >/dev/null; then
+        PRG="$link"
+    else
+        PRG="`dirname "$PRG"`/$link"
+    fi
+done
+
+progdir=`dirname "$PRG"`
+progdir=`cd $progdir; pwd`
+
+# Run the client
+
+java -cp "$progdir/../lib/*:$progdir/../*" -client org.epics.directory.DSClient "$@"
