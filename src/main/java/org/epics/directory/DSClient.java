@@ -18,9 +18,9 @@ package org.epics.directory;
 import java.util.ArrayList;
 import java.util.List;
 import org.epics.pvaccess.ClientFactory;
-import org.epics.pvaccess.client.rpc.ServiceClient;
-import org.epics.pvaccess.client.rpc.ServiceClientFactory;
-import org.epics.pvaccess.client.rpc.ServiceClientRequester;
+import org.epics.pvaccess.client.rpc.RPCClient;
+import org.epics.pvaccess.client.rpc.RPCClientFactory;
+import org.epics.pvaccess.client.rpc.RPCClientRequester;
 import org.epics.pvdata.factory.FieldFactory;
 import org.epics.pvdata.factory.PVDataFactory;
 import org.epics.pvdata.pv.*;
@@ -185,14 +185,14 @@ public class DSClient {
     }
 
     /**
-     * Client is an implementation of ServiceClientRequester.
+     * Client is an implementation of RPCClientRequester.
      * 
      * This is the interface between your functional client side code,
      * and the callbacks required by the client side of pvData and the RPC support
      */
-    private static class Client implements ServiceClientRequester {
+    private static class Client implements RPCClientRequester {
 
-        private ServiceClient serviceClient = null;
+        private RPCClient serviceClient = null;
         private PVStructure pvResult = null;
 
         /**
@@ -202,7 +202,7 @@ public class DSClient {
          */
         void connect(String serviceName) {
             try {
-                serviceClient = ServiceClientFactory.create(serviceName, this);
+                serviceClient = RPCClientFactory.create(serviceName, this);
                 serviceClient.waitConnect(5.0);
             } catch (Exception ex) {
                 System.err.println(this.getClass().getName() + " received Exception " + ex.getClass()
@@ -240,10 +240,10 @@ public class DSClient {
          * connectResult verifies the connection.
          *
          * @see
-         * org.epics.pvaccess.client.rpc.ServiceClientRequester#connectResult(org.epics.pvdata.pv.Status)
+         * org.epics.pvaccess.client.rpc.RPCClientRequester#connectResult(org.epics.pvdata.pv.Status)
          */
         @Override
-	public void connectResult(ServiceClient client, Status status) {
+	public void connectResult(RPCClient client, Status status) {
             if (!status.isOK()) {
                 throw new RuntimeException("Connection error: " + status.getMessage());
             }
@@ -254,11 +254,11 @@ public class DSClient {
          * requestResult receives data from the server.
          *
          * @see
-         * org.epics.pvService.client.ServiceClientRequester#requestResult(org.epics.pvdata.pv.Status,
+         * org.epics.pvService.client.RPCClientRequester#requestResult(org.epics.pvdata.pv.Status,
          * org.epics.pvdata.pv.PVStructure)
          */
         @Override
-	public void requestResult(ServiceClient client, Status status, PVStructure pvResult) {
+	public void requestResult(RPCClient client, Status status, PVStructure pvResult) {
             if (!status.isOK()) {
                 // throw new RuntimeException("Request error: " + status.getMessage());
                 System.err.println(SERVICE_NAME + " returned status " + status.getType().toString()
