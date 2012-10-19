@@ -92,7 +92,7 @@ class ChannelComparator implements Comparator<Channel> {
 
 public class CFConnector {
 
-    private static final boolean DEBUG = false; // Print debug info
+    private static final boolean DEBUG = true; // Print debug info
     private static ChannelFinderClient cfClient = null;
     private static final FieldCreate fieldCreate = FieldFactory.getFieldCreate();
     private static final PVDataCreate pvDataCreate = PVDataFactory.getPVDataCreate();
@@ -106,6 +106,11 @@ public class CFConnector {
         }
     }
 
+    private List<String> removeDoubles(List<String> l) {
+        Set<String> s = new LinkedHashSet<String>(l);
+        return new ArrayList<String>(s);
+    }
+    
     /**
      * getData performs a query on the ChannelFinder directory service.
      * 
@@ -115,7 +120,7 @@ public class CFConnector {
     public PVStructure getData(PVStructure args) {
         PVString pvStringArg;
         String query;
-        Set<String> show = null;
+        List<String> show = null;
         boolean useShowFilter = false;
         List<String> sort = null;
         boolean showOwner = false;
@@ -135,8 +140,9 @@ public class CFConnector {
         
         pvStringArg = args.getStringField("show");
         if (pvStringArg != null) {
-            show = new HashSet<String>(Arrays.asList(pvStringArg.get().split(",")));
+            show = new ArrayList<String>(Arrays.asList(pvStringArg.get().split(",")));
             show.add("channel");
+            show = removeDoubles(show);
             useShowFilter = true;
             _dbg("  Arg show=" + show.toString());
         }
@@ -144,6 +150,7 @@ public class CFConnector {
         pvStringArg = args.getStringField("sort");
         if (pvStringArg != null) {
             sort = new ArrayList<String>(Arrays.asList(pvStringArg.get().split(",")));
+            sort = removeDoubles(sort);
             _dbg("  Arg sort=" + sort.toString());
         }
         
@@ -208,16 +215,6 @@ public class CFConnector {
         }
         _dbg("Reply contains " + noCols + " columns");
 
-        /* Create the labels */
-        List<String> labels = new ArrayList<String>(noCols);
-        labels.add("channel");
-        if (showOwner) {
-            labels.add("@owner");
-        }
-        labels.addAll(properties);
-        labels.addAll(tags);
-        _dbg("Labels: " + labels);
-
         /* Loop through the channels, setting the appropriate fields in the column data */
         int i = 0;
         for (Channel chan : channels) {
@@ -242,6 +239,9 @@ public class CFConnector {
             i++;
         }
 
+        /* Create the labels */
+        List<String> labels = new ArrayList<String>(noCols);
+
         /* Construct the return data structure */
         Structure struct = fieldCreate.createStructure("NTTable", new String[0], new Field[0]);
         PVStructure pvTop = pvDataCreate.createPVStructure(struct);
@@ -251,7 +251,6 @@ public class CFConnector {
         
         /* Add labels */
         PVStringArray labelsArray = (PVStringArray) pvDataCreate.createPVScalarArray(stringColumnField);
-        labelsArray.put(0, noCols, labels.toArray(new String[0]), 0);
         pvTop.appendPVField("labels", labelsArray);
         
         Integer col = 0;
@@ -262,6 +261,7 @@ public class CFConnector {
             valuesArray.put(0, nChan, chanColumn, 0);
             pvTop.appendPVField("c"+col.toString(), valuesArray);
             col++;
+            labels.add("channel");
         }
 
         /* Add owner column */
@@ -270,23 +270,53 @@ public class CFConnector {
             valuesArray.put(0, nChan, ownerColumn, 0);
             pvTop.appendPVField("c"+col.toString(), valuesArray);
             col++;
+            labels.add("@owner");
         }
 
         /* Add properties columns */
-        for (String prop : properties) {
-            PVStringArray valuesArray = (PVStringArray) pvDataCreate.createPVScalarArray(stringColumnField);
-            valuesArray.put(0, nChan, propColumns.get(prop), 0);
-            pvTop.appendPVField("c"+col.toString(), valuesArray);
-            col++;
+        if (useShowFilter) {
+            for (String prop : show) {
+                if (properties.contains(prop)) {
+                    PVStringArray valuesArray = (PVStringArray) pvDataCreate.createPVScalarArray(stringColumnField);
+                    valuesArray.put(0, nChan, propColumns.get(prop), 0);
+                    pvTop.appendPVField("c"+col.toString(), valuesArray);
+                    col++;
+                    labels.add(prop);
+                }
+            }
+        } else {
+            for (String prop : properties) {
+                PVStringArray valuesArray = (PVStringArray) pvDataCreate.createPVScalarArray(stringColumnField);
+                valuesArray.put(0, nChan, propColumns.get(prop), 0);
+                pvTop.appendPVField("c"+col.toString(), valuesArray);
+                col++;
+                labels.add(prop);
+            }
         }
 
         /* Add tags columns */
-        for (String tag : tags) {
-            PVBooleanArray tagsArray = (PVBooleanArray) pvDataCreate.createPVScalarArray(booleanColumnField);
-            tagsArray.put(0, nChan, tagColumns.get(tag), 0);
-            pvTop.appendPVField("c"+col.toString(), tagsArray);
-            col++;
+        if (useShowFilter) {
+            for (String tag : show) {
+                if (tags.contains(tag)) {
+                    PVBooleanArray tagsArray = (PVBooleanArray) pvDataCreate.createPVScalarArray(booleanColumnField);
+                    tagsArray.put(0, nChan, tagColumns.get(tag), 0);
+                    pvTop.appendPVField("c"+col.toString(), tagsArray);
+                    col++;
+                    labels.add(tag);
+                }
+            }
+        } else {
+            for (String tag : tags) {
+                PVBooleanArray tagsArray = (PVBooleanArray) pvDataCreate.createPVScalarArray(booleanColumnField);
+                tagsArray.put(0, nChan, tagColumns.get(tag), 0);
+                pvTop.appendPVField("c"+col.toString(), tagsArray);
+                col++;
+                labels.add(tag);
+            }
         }
+
+        labelsArray.put(0, noCols, labels.toArray(new String[0]), 0);
+        
         _dbg("Returned data:\n" + pvTop);
         return pvTop;
     }
