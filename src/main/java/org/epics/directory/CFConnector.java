@@ -55,30 +55,38 @@ import org.epics.pvdata.pv.Structure;
 
 class ChannelComparator implements Comparator<Channel> {
 
-    private static String property;
+    private static List<String> sortProperties;
 
-    ChannelComparator(String prop) {
-        property = prop;
+    ChannelComparator(List<String> prop) {
+        sortProperties = prop;
     }
 
     @Override
     public int compare(Channel c1, Channel c2) {
-        Property p1 = c1.getProperty(property);
-        Property p2 = c2.getProperty(property);
+        for (String prop : sortProperties) {
+            Property p1 = c1.getProperty(prop);
+            Property p2 = c2.getProperty(prop);
 
-        if (p1 == null) {
-            if (p2 == null) {
-                return 0;
+            if (p1 == null) {
+                if (p2 == null) {
+                    continue;
+                } else {
+                    return -1;
+                }
             } else {
-                return -1;
-            }
-        } else {
-            if (p2 == null) {
-                return 1;
-            } else {
-                return p1.getValue().compareTo(p2.getValue());
+                if (p2 == null) {
+                    return 1;
+                } else {
+                    int cmp = p1.getValue().compareTo(p2.getValue());
+                    if (cmp == 0) {
+                        continue;
+                    } else {
+                        return cmp;
+                    }
+                }
             }
         }
+        return 0;
     }
 }
 
@@ -109,7 +117,7 @@ public class CFConnector {
         String query;
         Set<String> show = null;
         boolean useShowFilter = false;
-        String sort = null;
+        List<String> sort = null;
         boolean showOwner = false;
         
         if (cfClient == null) {
@@ -135,7 +143,7 @@ public class CFConnector {
         
         pvStringArg = args.getStringField("sort");
         if (pvStringArg != null) {
-            sort = pvStringArg.get();
+            sort = new ArrayList<String>(Arrays.asList(pvStringArg.get().split(",")));
             _dbg("  Arg sort=" + sort.toString());
         }
         
