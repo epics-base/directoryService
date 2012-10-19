@@ -92,7 +92,7 @@ class ChannelComparator implements Comparator<Channel> {
 
 public class CFConnector {
 
-    private static final boolean DEBUG = true; // Print debug info
+    private static final boolean DEBUG = false; // Print debug info
     private static ChannelFinderClient cfClient = null;
     private static final FieldCreate fieldCreate = FieldFactory.getFieldCreate();
     private static final PVDataCreate pvDataCreate = PVDataFactory.getPVDataCreate();
