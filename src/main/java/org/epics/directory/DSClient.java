@@ -105,26 +105,38 @@ public class DSClient {
             }
         }
 
-        // Set up request structure (each arg in its string field)
+        // Set up NTURI request structure (args are string fields inside the query structure)
         int nArgs = arguments.size();
-        // Create pvData interface
-        PVField[] fields = new PVField[nArgs];
-        for (int i = 0; i < nArgs; i++) {
-            fields[i] = pvDataCreate.createPVField(fieldCreate.createScalar(ScalarType.pvString));
-        }
-        String[] a = arguments.toArray(new String[arguments.size()]);
+
+        String[] a = arguments.toArray(new String[nArgs]);
         String[] v = values.toArray(new String[values.size()]);
         _dbg("nArgs " + nArgs + " (" + a + ")");
-
-        // Create pvData instance and fill in values
-        PVStructure pvArguments = pvDataCreate.createPVStructure(a, fields);
+        
+        Field[] f = new Field[nArgs];
         for (int i = 0; i < nArgs; i++) {
-            pvArguments.getStringField(a[i]).put(v[i]);
+            f[i] = fieldCreate.createScalar(ScalarType.pvString);
         }
-        _dbg("pvArguments = " + pvArguments);
+        
+        Structure queryStructure = fieldCreate.createStructure(a, f);
+
+        Structure uriStructure =
+                fieldCreate.createStructure("uri:ev4:nt/2012/pwd:NTURI",
+                new String[]{"path", "query"},
+                new Field[]{fieldCreate.createScalar(ScalarType.pvString),
+                    queryStructure});
+
+        // Fill in values for path and query (argument list)
+        PVStructure request = PVDataFactory.getPVDataCreate().
+                createPVStructure(uriStructure);
+        request.getStringField("path").put(SERVICE_NAME);
+        PVStructure query = request.getStructureField("query");
+        for (int i = 0; i < nArgs; i++) {
+            query.getStringField(a[i]).put(v[i]);
+        }
+        _dbg("request = " + request);
 
         try {
-            pvResult = client.request(pvArguments);
+            pvResult = client.request(query);
         } catch (Exception e) {
             if (e.getMessage() != null) {
                 System.err.println(e.getMessage());
