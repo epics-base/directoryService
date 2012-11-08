@@ -242,16 +242,18 @@ public class CFConnector {
         /* Create the labels */
         List<String> labels = new ArrayList<String>(noCols);
 
-        /* Construct the return data structure */
-        Structure struct = fieldCreate.createStructure("NTTable", new String[0], new Field[0]);
-        PVStructure pvTop = pvDataCreate.createPVStructure(struct);
+        /* Construct the return data NTTable */
+        Structure value = fieldCreate.createStructure(new String[0], new Field[0]);
+        Structure top = fieldCreate.createStructure("uri:ev4:nt/2012/pwd:NTTable",
+                new String[] {"labels", "value"},
+                new Field[] {fieldCreate.createScalarArray(ScalarType.pvString), value});
+
+        PVStructure pvTop = pvDataCreate.createPVStructure(top);
+        PVStructure pvValue = pvTop.getStructureField("value");
+        PVStringArray labelsArray = (PVStringArray) pvTop.getScalarArrayField("labels", ScalarType.pvString);
 
         ScalarArray stringColumnField = fieldCreate.createScalarArray(ScalarType.pvString);
         ScalarArray booleanColumnField = fieldCreate.createScalarArray(ScalarType.pvBoolean);
-        
-        /* Add labels */
-        PVStringArray labelsArray = (PVStringArray) pvDataCreate.createPVScalarArray(stringColumnField);
-        pvTop.appendPVField("labels", labelsArray);
         
         Integer col = 0;
         
@@ -259,7 +261,7 @@ public class CFConnector {
         if (nChan > 0) {
             PVStringArray valuesArray = (PVStringArray) pvDataCreate.createPVScalarArray(stringColumnField);
             valuesArray.put(0, nChan, chanColumn, 0);
-            pvTop.appendPVField("c"+col.toString(), valuesArray);
+            pvValue.appendPVField("c"+col.toString(), valuesArray);
             col++;
             labels.add("channel");
         }
@@ -268,7 +270,7 @@ public class CFConnector {
         if (showOwner && nChan > 0) {
             PVStringArray valuesArray = (PVStringArray) pvDataCreate.createPVScalarArray(stringColumnField);
             valuesArray.put(0, nChan, ownerColumn, 0);
-            pvTop.appendPVField("c"+col.toString(), valuesArray);
+            pvValue.appendPVField("c"+col.toString(), valuesArray);
             col++;
             labels.add("@owner");
         }
@@ -279,7 +281,7 @@ public class CFConnector {
                 if (properties.contains(prop)) {
                     PVStringArray valuesArray = (PVStringArray) pvDataCreate.createPVScalarArray(stringColumnField);
                     valuesArray.put(0, nChan, propColumns.get(prop), 0);
-                    pvTop.appendPVField("c"+col.toString(), valuesArray);
+                    pvValue.appendPVField("c"+col.toString(), valuesArray);
                     col++;
                     labels.add(prop);
                 }
@@ -288,7 +290,7 @@ public class CFConnector {
             for (String prop : properties) {
                 PVStringArray valuesArray = (PVStringArray) pvDataCreate.createPVScalarArray(stringColumnField);
                 valuesArray.put(0, nChan, propColumns.get(prop), 0);
-                pvTop.appendPVField("c"+col.toString(), valuesArray);
+                pvValue.appendPVField("c"+col.toString(), valuesArray);
                 col++;
                 labels.add(prop);
             }
@@ -300,7 +302,7 @@ public class CFConnector {
                 if (tags.contains(tag)) {
                     PVBooleanArray tagsArray = (PVBooleanArray) pvDataCreate.createPVScalarArray(booleanColumnField);
                     tagsArray.put(0, nChan, tagColumns.get(tag), 0);
-                    pvTop.appendPVField("c"+col.toString(), tagsArray);
+                    pvValue.appendPVField("c"+col.toString(), tagsArray);
                     col++;
                     labels.add(tag);
                 }
@@ -309,7 +311,7 @@ public class CFConnector {
             for (String tag : tags) {
                 PVBooleanArray tagsArray = (PVBooleanArray) pvDataCreate.createPVScalarArray(booleanColumnField);
                 tagsArray.put(0, nChan, tagColumns.get(tag), 0);
-                pvTop.appendPVField("c"+col.toString(), tagsArray);
+                pvValue.appendPVField("c"+col.toString(), tagsArray);
                 col++;
                 labels.add(tag);
             }
