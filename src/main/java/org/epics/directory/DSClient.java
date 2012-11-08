@@ -144,16 +144,21 @@ public class DSClient {
             System.exit(-1);
         }
 
-        if (!pvResult.getStructure().getID().equals("NTTable")) {
+        if (!pvResult.getStructure().getID().equals("uri:ev4:nt/2012/pwd:NTTable")) {
             System.err.println("Unexpected data structure returned from "
-                    + SERVICE_NAME + ": Expected NTTable, got "
+                    + SERVICE_NAME + ": Expected uri:ev4:nt/2012/pwd:NTTable, got "
                     + pvResult.getStructure().getID());
             System.exit(-1);
         }
-
-        /* TODO: here we should validate the NTTable we got */
         
         PVField[] pvFields = pvResult.getPVFields();
+        PVStructure pvValueStructure = pvResult.getStructureField("value");
+        if (pvValueStructure == null) {
+            System.err.println("NTTable returned from "+ SERVICE_NAME
+                    + "does not have a value");
+            System.exit(-1);
+        }
+        PVField[] pvValue = pvValueStructure.getPVFields();
 
         /* Fill the returned table into a NamedValues structure for printout */
         
@@ -161,20 +166,16 @@ public class DSClient {
 
         int i = 0;
         for (String columnName : GetHelper.getStringVector((PVStringArray) pvResult.getScalarArrayField(LABELS_FIELD, ScalarType.pvString))) {
-            /* We assume the first labels.size() arrays in the result are our columns */
-            while (pvFields[i].getField().getType() != Type.scalarArray
-                    || pvFields[i].getFieldName().equals(LABELS_FIELD)) {
-                i++;
-            }
-            ScalarArray scalarArray = (ScalarArray) pvFields[i].getField();
+            ScalarArray scalarArray = (ScalarArray) pvValue[i].getField();
             if (scalarArray.getElementType() == ScalarType.pvDouble) {
-                namedValues.add(columnName, GetHelper.getDoubleVector((PVDoubleArray) pvFields[i]));
+                namedValues.add(columnName, GetHelper.getDoubleVector((PVDoubleArray) pvValue[i]));
             } else if (scalarArray.getElementType() == ScalarType.pvString) {
-                namedValues.add(columnName, GetHelper.getStringVector((PVStringArray) pvFields[i]));
+                namedValues.add(columnName, GetHelper.getStringVector((PVStringArray) pvValue[i]));
             } else if (scalarArray.getElementType() == ScalarType.pvBoolean) {
-                namedValues.add(columnName, GetHelper.getBooleanVector((PVBooleanArray) pvFields[i]));
+                namedValues.add(columnName, GetHelper.getBooleanVector((PVBooleanArray) pvValue[i]));
             } else {
-                System.err.println("Array " + pvFields[i].getFieldName() + " from " + SERVICE_NAME + " has unexpected type.\n"
+                System.err.println("Value array " + i + " called " + pvValue[i].getFieldName()
+                        + " from " + SERVICE_NAME + " has unexpected type.\n"
                         + "Only pvDouble, pvString, pvBoolean supported");
             }
             i++;
