@@ -58,8 +58,14 @@ public class DSService {
          */
         @Override
         public PVStructure request(PVStructure args) throws RPCRequestException {
+            PVStructure query;
             try {
-                return dsConnector.getData(args);
+                if (args.getStructure().getID().equals("uri:ev4:nt/2012/pwd:NTURI")) {
+                    query = args.getStructureField("query");
+                } else {
+                    query = args;
+                }
+                return dsConnector.getData(query);
             } catch (Exception e) {
                 throw new RPCRequestException(Status.StatusType.FATAL, e.getMessage());
             }
