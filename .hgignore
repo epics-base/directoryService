@@ -1,4 +1,4 @@
-^bin
-^doc
-^target
+^bin/
+^doc/
+^target/
 LICENSE.txt
