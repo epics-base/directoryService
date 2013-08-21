@@ -11,12 +11,12 @@ package org.epics.directory;
  * %%
  * Copyright (C) 2012 EPICS
  * %%
- * Copyright (C) 2012 Helmholtz-Zentrum Berlin für Materialien und Energie GmbH
+ * Copyright (C) 2012 Helmholtz-Zentrum Berlin fur Materialien und Energie GmbH
  * All rights reserved. Use is subject to license terms.
  * #L%
  */
 
-import org.epics.pvaccess.CAException;
+import org.epics.pvaccess.PVAException;
 import org.epics.pvaccess.client.ChannelRPCRequester;
 import org.epics.pvaccess.server.rpc.RPCRequestException;
 import org.epics.pvaccess.server.rpc.RPCServer;
@@ -75,9 +75,9 @@ public class DSService {
     /**
      * main runs the DSService.
      * 
-     * @throws CAException pvAccess exception
+     * @throws PVException pvAccess exception
      */
-    public static void main(String[] args) throws CAException {
+    public static void main(String[] args) throws PVAException {
 
         RPCServer server = new RPCServer();
 

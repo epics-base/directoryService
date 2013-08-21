@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>epics</groupId>
-    <version>0.2.1-SNAPSHOT</version>
+    <version>0.2.1</version>
     <artifactId>directoryService</artifactId>
     <packaging>jar</packaging>
     <organization>
@@ -17,19 +17,18 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <epics4version>1.2-SNAPSHOT</epics4version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>pvData</artifactId>
-            <version>${epics4version}</version>
+            <artifactId>pvDataJava</artifactId>
+            <version>3.0.0</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>pvAccess</artifactId>
-            <version>${epics4version}</version>
+            <artifactId>pvAccessJava</artifactId>
+            <version>3.0.0</version>
         </dependency>
         <dependency>
             <groupId>gov.bnl.channelfinder</groupId>
