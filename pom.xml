@@ -3,8 +3,8 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>epics</groupId>
-    <version>0.2.2</version>
+    <groupId>org.epics</groupId>
+    <version>0.2.3</version>
     <artifactId>directoryService</artifactId>
     <packaging>jar</packaging>
     <organization>
@@ -23,12 +23,12 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>pvDataJava</artifactId>
-            <version>3.0.2</version>
+            <version>3.1.0</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>pvAccessJava</artifactId>
-            <version>3.0.4</version>
+            <version>3.1.0</version>
         </dependency>
         <dependency>
             <groupId>gov.bnl.channelfinder</groupId>
