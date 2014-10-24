@@ -10,7 +10,7 @@ package org.epics.directory;
  * %%
  * Copyright (C) 2012 EPICS
  * %%
- * Copyright (C) 2012 Helmholtz-Zentrum Berlin für Materialien und Energie GmbH
+ * Copyright (C) 2012 Helmholtz-Zentrum Berlin fuer Materialien und Energie GmbH
  * All rights reserved. Use is subject to license terms.
  * #L%
  */
@@ -49,7 +49,7 @@ import org.epics.pvdata.pv.Structure;
  *
  * It returns a PVStructure of normative type NTTable.
  *
- * @author Ralph Lange <Ralph.Lange@gmx.de>
+ * @author Ralph Lange (Ralph.Lange@gmx.de)
  *
  */
 
