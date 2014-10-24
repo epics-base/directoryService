@@ -122,7 +122,7 @@
                 <version>1.7</version>
                 <configuration>
                     <licenseName>epics_license</licenseName>
-                    <licenseResolver>file://${basedir}/src/license</licenseResolver>
+                    <licenseResolver>${project.baseUri}/src/license</licenseResolver>
                 </configuration>
                 <executions>
                     <execution>
