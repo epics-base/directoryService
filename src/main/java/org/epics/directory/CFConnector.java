@@ -68,9 +68,7 @@ class ChannelComparator implements Comparator<Channel> {
             Property p2 = c2.getProperty(prop);
 
             if (p1 == null) {
-                if (p2 == null) {
-                    continue;
-                } else {
+                if (p2 != null) {
                     return -1;
                 }
             } else {
@@ -78,9 +76,7 @@ class ChannelComparator implements Comparator<Channel> {
                     return 1;
                 } else {
                     int cmp = p1.getValue().compareTo(p2.getValue());
-                    if (cmp == 0) {
-                        continue;
-                    } else {
+                    if (cmp != 0) {
                         return cmp;
                     }
                 }
