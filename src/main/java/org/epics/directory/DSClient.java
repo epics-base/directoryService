@@ -45,7 +45,6 @@ public class DSClient {
     private static final String LABELS_FIELD = "labels";
     
     private static final FieldCreate fieldCreate = FieldFactory.getFieldCreate();
-    private static final PVDataCreate pvDataCreate = PVDataFactory.getPVDataCreate();
     
     private static final double timeout = 5.0;
 
@@ -120,7 +119,7 @@ public class DSClient {
         Structure queryStructure = fieldCreate.createStructure(a, f);
 
         Structure uriStructure =
-                fieldCreate.createStructure("uri:ev4:nt/2012/pwd:NTURI",
+                fieldCreate.createStructure("epics:nt/NTURI:1.0",
                 new String[]{"path", "query"},
                 new Field[]{fieldCreate.createScalar(ScalarType.pvString),
                     queryStructure});
@@ -144,14 +143,13 @@ public class DSClient {
             System.exit(-1);
         }
 
-        if (!pvResult.getStructure().getID().equals("uri:ev4:nt/2012/pwd:NTTable")) {
+        if (!pvResult.getStructure().getID().startsWith("epics:nt/NTTable:1.")) {
             System.err.println("Unexpected data structure returned from "
-                    + SERVICE_NAME + ": Expected uri:ev4:nt/2012/pwd:NTTable, got "
+                    + SERVICE_NAME + ": Expected epics:nt/NTTable:1.x, got "
                     + pvResult.getStructure().getID());
             System.exit(-1);
         }
         
-        PVField[] pvFields = pvResult.getPVFields();
         PVStructure pvValueStructure = pvResult.getStructureField("value");
         if (pvValueStructure == null) {
             System.err.println("NTTable returned from "+ SERVICE_NAME

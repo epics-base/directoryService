@@ -21,19 +21,29 @@ import gov.bnl.channelfinder.api.ChannelFinderClient;
 import gov.bnl.channelfinder.api.ChannelUtil;
 import gov.bnl.channelfinder.api.Property;
 import gov.bnl.channelfinder.api.Tag;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.epics.pvdata.factory.FieldFactory;
 import org.epics.pvdata.factory.PVDataFactory;
-import org.epics.pvdata.pv.Field;
+import org.epics.pvdata.pv.FieldBuilder;
 import org.epics.pvdata.pv.FieldCreate;
 import org.epics.pvdata.pv.PVBooleanArray;
 import org.epics.pvdata.pv.PVDataCreate;
+import org.epics.pvdata.pv.PVField;
 import org.epics.pvdata.pv.PVString;
 import org.epics.pvdata.pv.PVStringArray;
 import org.epics.pvdata.pv.PVStructure;
 import org.epics.pvdata.pv.ScalarArray;
 import org.epics.pvdata.pv.ScalarType;
-import org.epics.pvdata.pv.Structure;
 
 /**
  * CFConnector retrieves data from the ChannelFinder web service.
@@ -237,16 +247,16 @@ public class CFConnector {
 
         /* Create the labels */
         List<String> labels = new ArrayList<String>(noCols);
-
+        
+        /* Create the value fields */
+        List<Object> valueFieldsData = new ArrayList<Object>();
+        
         /* Construct the return data NTTable */
-        Structure value = fieldCreate.createStructure(new String[0], new Field[0]);
-        Structure top = fieldCreate.createStructure("uri:ev4:nt/2012/pwd:NTTable",
-                new String[] {"labels", "value"},
-                new Field[] {fieldCreate.createScalarArray(ScalarType.pvString), value});
-
-        PVStructure pvTop = pvDataCreate.createPVStructure(top);
-        PVStructure pvValue = pvTop.getStructureField("value");
-        PVStringArray labelsArray = (PVStringArray) pvTop.getScalarArrayField("labels", ScalarType.pvString);
+        FieldBuilder topBuilder = fieldCreate.createFieldBuilder();
+        topBuilder.setId("epics:nt/NTTable:1.0");
+        topBuilder.addArray("labels", ScalarType.pvString);
+        
+        FieldBuilder valueNestedBuilder = topBuilder.addNestedStructure("value");
 
         ScalarArray stringColumnField = fieldCreate.createScalarArray(ScalarType.pvString);
         ScalarArray booleanColumnField = fieldCreate.createScalarArray(ScalarType.pvBoolean);
@@ -255,18 +265,16 @@ public class CFConnector {
         
         /* Add channel column */
         if (nChan > 0) {
-            PVStringArray valuesArray = (PVStringArray) pvDataCreate.createPVScalarArray(stringColumnField);
-            valuesArray.put(0, nChan, chanColumn, 0);
-            pvValue.appendPVField("c"+col.toString(), valuesArray);
+            valueNestedBuilder.add("c"+col.toString(), stringColumnField);
+            valueFieldsData.add(chanColumn);
             col++;
             labels.add("channel");
         }
 
         /* Add owner column */
         if (showOwner && nChan > 0) {
-            PVStringArray valuesArray = (PVStringArray) pvDataCreate.createPVScalarArray(stringColumnField);
-            valuesArray.put(0, nChan, ownerColumn, 0);
-            pvValue.appendPVField("c"+col.toString(), valuesArray);
+            valueNestedBuilder.add("c"+col.toString(), stringColumnField);
+            valueFieldsData.add(ownerColumn);
             col++;
             labels.add("@owner");
         }
@@ -275,18 +283,16 @@ public class CFConnector {
         if (useShowFilter) {
             for (String prop : show) {
                 if (properties.contains(prop)) {
-                    PVStringArray valuesArray = (PVStringArray) pvDataCreate.createPVScalarArray(stringColumnField);
-                    valuesArray.put(0, nChan, propColumns.get(prop), 0);
-                    pvValue.appendPVField("c"+col.toString(), valuesArray);
+                    valueNestedBuilder.add("c"+col.toString(), stringColumnField);
+                    valueFieldsData.add(propColumns.get(prop));
                     col++;
                     labels.add(prop);
                 }
             }
         } else {
             for (String prop : properties) {
-                PVStringArray valuesArray = (PVStringArray) pvDataCreate.createPVScalarArray(stringColumnField);
-                valuesArray.put(0, nChan, propColumns.get(prop), 0);
-                pvValue.appendPVField("c"+col.toString(), valuesArray);
+                valueNestedBuilder.add("c"+col.toString(), stringColumnField);
+                valueFieldsData.add(propColumns.get(prop));
                 col++;
                 labels.add(prop);
             }
@@ -296,23 +302,44 @@ public class CFConnector {
         if (useShowFilter) {
             for (String tag : show) {
                 if (tags.contains(tag)) {
-                    PVBooleanArray tagsArray = (PVBooleanArray) pvDataCreate.createPVScalarArray(booleanColumnField);
-                    tagsArray.put(0, nChan, tagColumns.get(tag), 0);
-                    pvValue.appendPVField("c"+col.toString(), tagsArray);
+                    valueNestedBuilder.add("c"+col.toString(), booleanColumnField);
+                    valueFieldsData.add(tagColumns.get(tag));
                     col++;
                     labels.add(tag);
                 }
             }
         } else {
             for (String tag : tags) {
-                PVBooleanArray tagsArray = (PVBooleanArray) pvDataCreate.createPVScalarArray(booleanColumnField);
-                tagsArray.put(0, nChan, tagColumns.get(tag), 0);
-                pvValue.appendPVField("c"+col.toString(), tagsArray);
+                valueNestedBuilder.add("c"+col.toString(), booleanColumnField);
+                valueFieldsData.add(tagColumns.get(tag));
                 col++;
                 labels.add(tag);
             }
         }
 
+        valueNestedBuilder.endNested();
+        
+        PVStructure pvTop = pvDataCreate.createPVStructure(topBuilder.createStructure());
+        PVStructure pvValue = pvTop.getStructureField("value");
+        int ix = 0;
+        for (PVField pvField : pvValue.getPVFields())
+        {
+        	if (pvField instanceof PVStringArray)
+        	{
+        		String[] val = (String[])valueFieldsData.get(ix);
+        		((PVStringArray)pvField).put(0, val.length, val, 0);
+        	}
+        	else if (pvField instanceof PVBooleanArray)
+        	{
+        		boolean[] val = (boolean[])valueFieldsData.get(ix);
+        		((PVBooleanArray)pvField).put(0, val.length, val, 0);
+        	}
+        	else
+        		throw new RuntimeException("unsupported column type: " + pvField.getField());
+        	ix++;
+        }
+        
+        PVStringArray labelsArray = (PVStringArray) pvTop.getScalarArrayField("labels", ScalarType.pvString);
         labelsArray.put(0, noCols, labels.toArray(new String[0]), 0);
         
         _dbg("Returned data:\n" + pvTop);

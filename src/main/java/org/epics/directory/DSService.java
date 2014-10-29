@@ -17,7 +17,6 @@ package org.epics.directory;
  */
 
 import org.epics.pvaccess.PVAException;
-import org.epics.pvaccess.client.ChannelRPCRequester;
 import org.epics.pvaccess.server.rpc.RPCRequestException;
 import org.epics.pvaccess.server.rpc.RPCServer;
 import org.epics.pvaccess.server.rpc.RPCService;
@@ -50,7 +49,6 @@ public class DSService {
 
     private static class DSServiceImpl implements RPCService {
 
-        private ChannelRPCRequester channelRPCRequester;
         private static CFConnector dsConnector = new CFConnector();
         
         /**
@@ -60,7 +58,7 @@ public class DSService {
         public PVStructure request(PVStructure args) throws RPCRequestException {
             PVStructure query;
             try {
-                if (args.getStructure().getID().equals("uri:ev4:nt/2012/pwd:NTURI")) {
+                if (args.getStructure().getID().startsWith("epics:nt/NTURI:1.")) {
                     query = args.getStructureField("query");
                 } else {
                     query = args;
