@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.epics</groupId>
-    <version>0.2.4-SNAPSHOT</version>
+    <version>0.3.1-SNAPSHOT</version>
     <artifactId>directoryService</artifactId>
     <packaging>jar</packaging>
     <organization>
