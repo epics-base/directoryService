@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.epics</groupId>
-    <version>0.3.2-SNAPSHOT</version>
+    <version>0.3.2</version>
     <artifactId>directoryService</artifactId>
     <packaging>jar</packaging>
     <organization>
@@ -28,7 +28,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>pvAccessJava</artifactId>
-            <version>4.0.1</version>
+            <version>4.0.2</version>
         </dependency>
         <dependency>
             <groupId>gov.bnl.channelfinder</groupId>
