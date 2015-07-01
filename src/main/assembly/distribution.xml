@@ -24,13 +24,13 @@
     <files>
         <file>
             <source>LICENSE.txt</source>
-            <outputDirectory>/</outputDirectory>
+            <outputDirectory>.</outputDirectory>
         </file>
     </files>
     <fileSets>
         <fileSet>
             <directory>${project.build.directory}</directory>
-            <outputDirectory>/</outputDirectory>
+            <outputDirectory>.</outputDirectory>
             <includes>
                 <include>*.jar</include>
             </includes>
@@ -40,7 +40,7 @@
             <includes>
                 <include>*Runner</include>
             </includes>
-            <outputDirectory>/bin</outputDirectory>
+            <outputDirectory>bin</outputDirectory>
             <fileMode>0755</fileMode>
         </fileSet>
     </fileSets>    
