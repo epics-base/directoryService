@@ -73,7 +73,8 @@ public class DSService {
     /**
      * main runs the DSService.
      * 
-     * @throws PVException pvAccess exception
+     * @param args unused command line arguments
+     * @throws PVAException pvAccess exception
      */
     public static void main(String[] args) throws PVAException {
 
