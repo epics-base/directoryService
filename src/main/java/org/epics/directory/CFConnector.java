@@ -1,6 +1,6 @@
 /**
  * CFConnector accesses the ChannelFinder web service,
- * taking arguments and returning results as pvData.
+ * taking its arguments and returning the web service results as pvData.
  */
 package org.epics.directory;
 
