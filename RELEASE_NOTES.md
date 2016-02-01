@@ -2,6 +2,9 @@
 
 ## Series release/0.4
 
+### 0.4.3
+* Update dependency versions
+
 ### 0.4.2
 * Add release notes
 
