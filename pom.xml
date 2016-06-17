@@ -3,39 +3,17 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.epics</groupId>
+    <artifactId>epics-directoryService</artifactId>
     <version>0.5.0-SNAPSHOT</version>
-    <artifactId>directoryService</artifactId>
-    <packaging>jar</packaging>
+
     <organization>
         <name>EPICS</name>
     </organization>
 
-    <name>directoryService - Java</name>
+    <name>directoryService</name>
     <url>https://github.com/epics-base/directoryService</url>
     <inceptionYear>2012</inceptionYear>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>pvDataJava</artifactId>
-            <version>5.1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>pvAccessJava</artifactId>
-            <version>4.1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>gov.bnl.channelfinder</groupId>
-            <artifactId>ChannelFinderAPI</artifactId>
-            <version>2.2.0</version>
-        </dependency>
-    </dependencies>
-    
     <repositories>
         <repository>
             <id>epics</id>
@@ -44,28 +22,22 @@
         </repository>
     </repositories>
 
-    <distributionManagement>
-    	<!-- To be able to deploy, set login/passwd in your m2 settings.xml, <servers> section
-    	(id values there should match ids below) -->
-        <repository>
-            <id>epics.releases</id>
-            <name>EPICS Repository</name>
-            <url>scp://shell.sourceforge.net/home/project-web/epics/htdocs/maven2</url>
-        </repository>
-    </distributionManagement>
-  
+    <dependencies>
+        <dependency>
+            <groupId>org.epics</groupId>
+            <artifactId>epics-core</artifactId>
+            <type>pom</type>
+            <version>4.6.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>gov.bnl.channelfinder</groupId>
+            <artifactId>ChannelFinderAPI</artifactId>
+            <version>2.2.0</version>
+        </dependency>
+    </dependencies>
+    
     <build>
         <plugins>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.2</version>
-                <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                </configuration>
-            </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -75,7 +47,7 @@
                     <execution>
                         <id>attach-sources</id>
                         <goals>
-                            <goal>jar</goal>
+                            <goal>jar-no-fork</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -96,12 +68,11 @@
             </plugin>
 
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.5.3</version>
+                <version>2.6</version>
                 <configuration>
                     <descriptors>
-                        <descriptor>src/main/assembly/distribution.xml</descriptor>
+                        <descriptor>src/assembly/distribution.xml</descriptor>
                     </descriptors>
                 </configuration>
                 <executions>
@@ -135,16 +106,13 @@
                 </executions>
             </plugin>
 
-            <plugin> 
-                <artifactId>maven-deploy-plugin</artifactId> 
-                <version>2.8.2</version> 
-                <dependencies> 
-                    <dependency> 
-                        <groupId>org.apache.maven.wagon</groupId> 
-                        <artifactId>wagon-ssh</artifactId> 
-                        <version>2.8</version> 
-                    </dependency> 
-                </dependencies> 
+            <!-- Do not deploy artifacts to remote repositories -->
+            <plugin>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.8.2</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
             </plugin>
 
         </plugins>
