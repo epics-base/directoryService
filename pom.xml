@@ -14,6 +14,10 @@
     <url>https://github.com/epics-base/directoryService</url>
     <inceptionYear>2012</inceptionYear>
 
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
     <!-- Explicitly declare snapshot repository -->
     <repositories>
         <repository>
