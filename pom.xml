@@ -14,11 +14,12 @@
     <url>https://github.com/epics-base/directoryService</url>
     <inceptionYear>2012</inceptionYear>
 
+    <!-- Explicitly declare snapshot repository -->
     <repositories>
         <repository>
-            <id>epics</id>
-            <name>EPICS Repository</name>
-            <url>http://epics.sourceforge.net/maven2/</url>
+            <id>sonatype-nexus-snapshots</id>
+            <name>OSS Snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </repository>
     </repositories>
 
