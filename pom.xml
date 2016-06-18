@@ -21,6 +21,12 @@
             <name>OSS Snapshots</name>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </repository>
+        <!-- Temporary - needed for old snapshots of ChannelfinderAPI -->
+        <repository>
+            <id>epics</id>
+            <name>EPICS Repository</name>
+            <url>http://epics.sourceforge.net/maven2/</url>
+        </repository>
     </repositories>
 
     <dependencies>
