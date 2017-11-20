@@ -53,7 +53,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>2.4</version>
+                <version>3.0.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -67,7 +67,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.4</version>
+                <version>3.0.0-M1</version>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
@@ -80,7 +80,7 @@
 
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.6</version>
+                <version>3.1.0</version>
                 <configuration>
                     <descriptors>
                         <descriptor>src/assembly/distribution.xml</descriptor>
@@ -100,7 +100,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <version>1.9</version>
+                <version>1.14</version>
                 <configuration>
                     <licenseName>epics_license</licenseName>
                     <licenseResolver>${project.baseUri}/src/license</licenseResolver>
