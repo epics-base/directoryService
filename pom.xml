@@ -13,6 +13,11 @@
     <name>directoryService</name>
     <url>https://github.com/epics-base/directoryService</url>
     <inceptionYear>2012</inceptionYear>
+    <scm>
+    	<url>https://github.com/epics-base/directoryService</url>
+    	<connection>scm:git:https://github.com/epics-base/directoryService</connection>
+    	<developerConnection>scm:git:https://github.com/epics-base/directoryService</developerConnection>
+    </scm>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -51,7 +56,6 @@
         <plugins>
 
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
                 <version>3.0.1</version>
                 <executions>
@@ -65,7 +69,6 @@
             </plugin>
 
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.0.0-M1</version>
                 <executions>
@@ -117,7 +120,12 @@
                 </executions>
             </plugin>
 
-            <!-- Do not deploy artifacts to remote repositories -->
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.3</version>
+            </plugin>
+
+                    <!-- Do not deploy artifacts to remote repositories -->
             <plugin>
                 <artifactId>maven-deploy-plugin</artifactId>
                 <version>2.8.2</version>
