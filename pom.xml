@@ -3,7 +3,7 @@
 
     <groupId>org.epics</groupId>
     <artifactId>epics-directoryService</artifactId>
-    <version>0.6.1-SNAPSHOT</version>
+    <version>0.6.1</version>
 
     <organization>
         <name>EPICS</name>
@@ -16,7 +16,7 @@
     	<url>https://github.com/epics-base/directoryService</url>
     	<connection>scm:git:https://github.com/epics-base/directoryService</connection>
     	<developerConnection>scm:git:https://github.com/epics-base/directoryService</developerConnection>
-      <tag>HEAD</tag>
+      <tag>0.6.1</tag>
   </scm>
 
     <properties>
@@ -43,7 +43,7 @@
             <groupId>org.epics</groupId>
             <artifactId>epics-core</artifactId>
             <type>pom</type>
-            <version>7.0.1-SNAPSHOT</version>
+            <version>7.0.1</version>
         </dependency>
         <dependency>
             <groupId>gov.bnl.channelfinder</groupId>
