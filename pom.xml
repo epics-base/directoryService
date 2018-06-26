@@ -25,6 +25,10 @@
             <name>OSS Snapshots</name>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </repository>
+    <!-- This deprecated repository on SourceForge is needed as long
+        as directoryService uses the old 2.x ChannelFinderAPI.
+        After switching to cf-client-api version 3.x (on Maven Central),
+        the entry should be removed. -->
         <repository>
             <id>epics</id>
             <name>EPICS Repository</name>
